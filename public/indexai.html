@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>AnuwatAI - Secure Backend Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', 'Sarabun', 'TH SarabunPSK', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .security-badge {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .user .message-avatar {
+            background: #2196F3;
+        }
+
+        .ai .message-avatar {
+            background: #4CAF50;
+        }
+
+        .message-content {
+            background: white;
+            padding: 15px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+        }
+
+        .user .message-content {
+            background: #2196F3;
+            color: white;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            border-color: #4CAF50;
+        }
+
+        .send-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: loading 1.4s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loading {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+
+        .welcome-message h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .sample-questions {
+            display: grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .sample-question {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .sample-question:hover {
+            border-color: #4CAF50;
+            background: #f0f8ff;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            background: #4CAF50;
+            color: white;
+            font-size: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator.offline {
+            background: #f44336;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 90vh;
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .security-badge {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-top: 10px;
+                justify-self: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Indicator -->
+    <div class="status-indicator" id="statusIndicator">
+        <div class="pulse"></div>
+        <span id="statusText">เชื่อมต่อแล้ว</span>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="security-badge">
+                🔒 ปลอดภัย
+            </div>
+            <h1>🤖 Anuwat.AI</h1>
+            <p>Developed by รศ.ดร.อนุวัติ คูณแก้ว | AI for Ask, Research, Create Images & Analyze Data</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h3>ยินดีต้อนรับสู่ Anuwat.AI 🚀</h3>
+                <p>AI สำหรับสอบถาม วิจัย สร้างภาพ และวิเคราะห์ข้อมูล</p>
+                <p style="font-size: 12px; color: #888; margin-top: 10px;">🔒 ระบบปลอดภัยด้วย Backend Server</p>
+                
+                <div class="sample-questions">
+                    <div class="sample-question" onclick="sendSampleQuestion(this)">
+                        💡 เมื่อไหร่ควรใช้ t-test และ ANOVA ในการวิเคราะห์ข้อมูล
+                    </div>
+                    <div class="sample-question" onclick="sendSampleQuestion(this)">
+                        🎯 ช่วยสร้างรูปแบบการสอนแบบใหม่ และกำหนดชื่อให้น่าสนใจ มีความหมายที่ดี ทันสมัย โดยบูรณาการ วิธีสอนแบบโครงงาน (PBL) และ วิธีสอนแบบสืบเสาะหาความรู้ (IBL) ให้ระบุขั้นตอนการสอนแต่ละขั้นอย่างละเอียด และนำไปใช้ได้จริง
+                    </div>
+                    <div class="sample-question" onclick="sendSampleQuestion(this)">
+                        💻 Find recent systematic reviews on Problem-Based Learning effectiveness in primary school (2020-2024) with APA citations
+                    </div>
+                    <div class="sample-question" onclick="sendSampleQuestion(this)">
+                        🎨 สร้างภาพ: coloring page for kids, dinosaur, full page, thick lines, very low detail, no shading
+                    </div>
+                    <div class="sample-question" onclick="sendSampleQuestion(this)">
+                        🎓 ช่วยสร้างแบบทดสอบ เรื่อง การคูณเลข 1 หลัก เป็นแบบเลือกตอบ 4 ตัวเลือก พร้อมเฉลย
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="พิมพ์คำถามของคุณที่นี่... (กด Enter เพื่อส่ง, Shift+Enter เพื่อขึ้นบรรทัดใหม่)"
+                    rows="1"
+                ></textarea>
+                <button type="submit" class="send-button" id="sendButton">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 🔗 API Configuration - เชื่อมต่อกับ Backend
+        const API_BASE_URL = window.location.origin; // ใช้ same domain
+        
+        // 🤖 ตั้งค่า AI System Message
+        const SYSTEM_MESSAGE = `คุณเป็นผู้ช่วยการศึกษาที่เชี่ยวชาญด้านสถิติและการวิเคราะห์ข้อมูล
+
+กฎการตอบคำถามที่สำคัญที่สุด:
+- ตรวจสอบภาษาของคำถามก่อนตอบ
+- หากคำถามเป็นภาษาไทย ต้องตอบเป็นภาษาไทยเท่านั้น ห้ามใช้ภาษาอื่นปนเด็ดขาด
+- หากคำถามเป็นภาษาอังกฤษ ต้องตอบเป็นภาษาอังกฤษเท่านั้น ห้ามใช้ภาษาอื่นปนเด็ดขาด
+- ห้ามใช้ภาษาจีน ภาษาเวียดนาม ภาษาญี่ปุ่น หรือภาษาอื่นใดทั้งสิ้น
+- ใช้คำศัพท์ภาษาไทยที่ถูกต้อง เช่น "เฉพาะ" ไม่ใช่ "cụ thể"
+- ใช้คำศัพท์ทางวิชาการที่เหมาะสมและเข้าใจง่าย
+- อธิบายอย่างละเอียดและครบถ้วน
+- ให้ตัวอย่างประกอบการอธิบาย
+- ตอบให้สมบูรณ์ไม่ตัดกลางคำ`;
+        
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const chatForm = document.getElementById('chatForm');
+        const sendButton = document.getElementById('sendButton');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        let messageCount = 0;
+        let conversationHistory = [];
+        let isServerOnline = true;
+
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/health`);
+                if (response.ok) {
+                    updateStatus(true, 'เชื่อมต่อแล้ว');
+                } else {
+                    updateStatus(false, 'เซิร์ฟเวอร์มีปัญหา');
+                }
+            } catch (error) {
+                updateStatus(false, 'ไม่สามารถเชื่อมต่อได้');
+            }
+        }
+
+        function updateStatus(online, message) {
+            isServerOnline = online;
+            statusText.textContent = message;
+            statusIndicator.className = `status-indicator ${online ? '' : 'offline'}`;
+        }
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Handle Enter key
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendMessage();
+        });
+
+        function sendSampleQuestion(element) {
+            const question = element.textContent.replace(/💡|📊|🎓|💻|🎨|🎯/, '').trim();
+            chatInput.value = question;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            if (!isServerOnline) {
+                showError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
+                return;
+            }
+
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // ตรวจสอบว่าเป็นคำสั่งสร้างภาพหรือไม่
+            if (isImageRequest(message)) {
+                await handleImageGeneration(message);
+                return;
+            }
+
+            // Clear welcome message on first interaction
+            if (messageCount === 0) {
+                chatMessages.innerHTML = '';
+            }
+
+            // Add user message
+            addMessage(message, 'user');
+            conversationHistory.push({role: 'user', content: message});
+            
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            // Show loading
+            const loadingId = addLoadingMessage();
+            
+            // Disable input
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+
+            try {
+                // Prepare messages for API
+                const messages = [
+                    {role: 'system', content: SYSTEM_MESSAGE},
+                    ...conversationHistory.slice(-10) // Keep last 10 messages for context
+                ];
+
+                const response = await fetch(`${API_BASE_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: messages
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                let aiResponse = data.choices[0].message.content;
+                
+                // แก้ไขภาษาที่ปนมาสำหรับคำถามภาษาไทย
+                if (isThaiQuestion(message)) {
+                    aiResponse = cleanThaiResponse(aiResponse);
+                }
+                
+                // Remove loading message
+                removeLoadingMessage(loadingId);
+                
+                // Add AI response
+                addMessage(aiResponse, 'ai');
+                conversationHistory.push({role: 'assistant', content: aiResponse});
+
+            } catch (error) {
+                console.error('Error:', error);
+                removeLoadingMessage(loadingId);
+                showError(error.message);
+            }
+
+            // Re-enable input
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            chatInput.focus();
+        }
+
+        // ตรวจสอบว่าคำถามเป็นภาษาไทยหรือไม่
+        function isThaiQuestion(text) {
+            const thaiPattern = /[\u0E00-\u0E7F]/;
+            return thaiPattern.test(text);
+        }
+
+        // ทำความสะอาดคำตอบภาษาไทย
+        function cleanThaiResponse(text) {
+            return text
+                .replace(/比較/g, 'เปรียบเทียบ')
+                .replace(/比较/g, 'เปรียบเทียบ')
+                .replace(/平均/g, 'ค่าเฉลี่ย')
+                .replace(/分析/g, 'วิเคราะห์')
+                .replace(/差異/g, 'ความแตกต่าง')
+                .replace(/結果/g, 'ผลลัพธ์')
+                .replace(/數據/g, 'ข้อมูล')
+                .replace(/統計/g, 'สถิติ')
+                .replace(/檢驗/g, 'การทดสอบ')
+                .replace(/顯著/g, 'นัยสำคัญ')
+                .replace(/cụ thể/g, 'เฉพาะ')
+                .replace(/chính xác/g, 'แม่นยำ')
+                .replace(/quan trọng/g, 'สำคัญ')
+                .replace(/hiệu quả/g, 'มีประสิทธิภาพ')
+                .replace(/\bspecific\b/g, 'เฉพาะ')
+                .replace(/\baccurate\b/g, 'แม่นยำ')
+                .replace(/\bimportant\b/g, 'สำคัญ')
+                .replace(/\beffective\b/g, 'มีประสิทธิภาพ');
+        }
+
+        // ตรวจจับคำสั่งสร้างภาพ
+        function isImageRequest(text) {
+            const imageKeywords = [
+                'สร้างภาพ:', 'generate image:', 'สร้างรูป:', 'create image:',
+                'วาดภาพ:', 'draw image:', 'ทำภาพ:', 'make image:'
+            ];
+            return imageKeywords.some(keyword => 
+                text.toLowerCase().includes(keyword.toLowerCase())
+            );
+        }
+
+        // แยกข้อความสำหรับสร้างภาพ
+        function extractImagePrompt(text) {
+            const keywords = ['สร้างภาพ:', 'generate image:', 'สร้างรูป:', 'create image:', 
+                             'วาดภาพ:', 'draw image:', 'ทำภาพ:', 'make image:'];
+            
+            for (let keyword of keywords) {
+                if (text.toLowerCase().includes(keyword.toLowerCase())) {
+                    return text.substring(text.toLowerCase().indexOf(keyword.toLowerCase()) + keyword.length).trim();
+                }
+            }
+            return text;
+        }
+
+        // จัดการการสร้างภาพ
+        async function handleImageGeneration(message) {
+            if (messageCount === 0) {
+                chatMessages.innerHTML = '';
+            }
+
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            const loadingId = addImageLoadingMessage();
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+
+            try {
+                const imagePrompt = extractImagePrompt(message);
+                
+                const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: imagePrompt
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'ไม่สามารถสร้างภาพได้');
+                }
+
+                const data = await response.json();
+                removeLoadingMessage(loadingId);
+                
+                if (data.success && data.imageUrl) {
+                    addImageMessage(data.imageUrl, data.prompt);
+                } else {
+                    throw new Error('ไม่ได้รับ URL ภาพจากเซิร์ฟเวอร์');
+                }
+
+            } catch (error) {
+                console.error('Image Generation Error:', error);
+                removeLoadingMessage(loadingId);
+                showError('เกิดข้อผิดพลาดในการสร้างภาพ: ' + error.message);
+            }
+
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            chatInput.focus();
+        }
+
+        // Loading message สำหรับสร้างภาพ
+        function addImageLoadingMessage() {
+            const loadingId = 'loading-image-' + Date.now();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.id = loadingId;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🎨';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content loading';
+            messageContent.innerHTML = `
+                🎨 กำลังสร้างภาพ... (ใช้เวลาประมาณ 10-30 วินาที)
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return loadingId;
+        }
+
+        // แสดงภาพที่สร้างได้
+        function addImageMessage(imageUrl, prompt) {
+            messageCount++;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🎨';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = `
+                <p><strong>สร้างภาพ:</strong> ${prompt}</p>
+                <img src="${imageUrl}" alt="Generated Image" style="max-width: 100%; border-radius: 10px; margin-top: 10px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')" onload="this.style.opacity=1" style="opacity:0; transition: opacity 0.3s;">
+                <br><small style="color: #666; margin-top: 5px; display: block;">🖱️ คลิกที่ภาพเพื่อดูขนาดเต็ม</small>
+            `;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addMessage(content, type) {
+            messageCount++;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = type === 'user' ? '👤' : '🤖';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = formatMessage(content);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addLoadingMessage() {
+            const loadingId = 'loading-' + Date.now();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.id = loadingId;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = '🤖';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content loading';
+            messageContent.innerHTML = `
+                กำลังคิด
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return loadingId;
+        }
+
+        function removeLoadingMessage(loadingId) {
+            const loadingElement = document.getElementById(loadingId);
+            if (loadingElement) {
+                loadingElement.remove();
+            }
+        }
+
+        function showError(message) {
+            addMessage(`❌ ${message}`, 'ai');
+        }
+
+        function formatMessage(text) {
+            return text
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">$1</code>');
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            chatInput.focus();
+            checkServerStatus();
+            
+            // Check server status every 30 seconds
+            setInterval(checkServerStatus, 30000);
+        });
+
+        // Handle offline/online events
+        window.addEventListener('online', () => checkServerStatus());
+        window.addEventListener('offline', () => updateStatus(false, 'ไม่มีสัญญาณอินเทอร์เน็ต'));
+    </script>
+</body>
+</html>

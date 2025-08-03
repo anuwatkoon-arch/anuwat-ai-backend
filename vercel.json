@@ -14,27 +14,15 @@
       "dest": "/server.js"
     },
     {
-      "src": "/(.*\\.(css|js|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
-      "dest": "/public/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "src": "/",
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/",
       "dest": "/server.js"
     }
   ],
-  "regions": ["sin1", "hnd1", "sfo1"],
   "env": {
     "NODE_ENV": "production"
-  },
-  "outputDirectory": "public",
-  "github": {
-    "silent": true
   }
 }

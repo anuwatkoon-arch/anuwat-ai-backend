@@ -6,11 +6,20 @@ const app = express();
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
+
+// 🔧 CORS Configuration - แก้ไขแล้ว
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? ['https://your-frontend-domain.vercel.app'] // แทนที่ด้วยโดเมนจริง
-        : ['http://localhost:3000', 'http://127.0.0.1:5500'], // สำหรับ development
-    credentials: true
+    origin: [
+        'http://www.anuwatkoon.com',      // ✅ เพิ่ม HTTP version
+        'https://www.anuwatkoon.com',     // ✅ เพิ่ม HTTPS version (กรณีอนาคต)
+        'http://anuwatkoon.com',          // ✅ เพิ่มแบบไม่มี www
+        'https://anuwatkoon.com',         // ✅ เพิ่ม HTTPS แบบไม่มี www
+        'http://localhost:3000',          // ✅ เก็บไว้สำหรับ development
+        'http://127.0.0.1:5500'           // ✅ เก็บไว้สำหรับ development
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }));
 
 // Serve static files (สำหรับ Frontend)
@@ -157,7 +166,8 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        version: '1.0.1'
+        version: '1.0.2',
+        cors: 'enabled for anuwatkoon.com'
     });
 });
 
@@ -196,6 +206,7 @@ app.listen(PORT, () => {
     console.log(`🚀 Anuwat.AI Backend Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 API Key configured: ${GROQ_API_KEY ? 'Yes' : 'No'}`);
+    console.log(`📡 CORS enabled for: anuwatkoon.com`);
 });
 
 // Graceful shutdown
@@ -207,5 +218,4 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
     console.log('👋 Server shutting down gracefully...');
     process.exit(0);
-
 });

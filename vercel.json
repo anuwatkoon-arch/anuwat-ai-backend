@@ -1,13 +1,11 @@
 {
   "version": 2,
-  "name": "anuwat-ai-backend",
-  "functions": {
-    "server.js": {
-      "runtime": "@vercel/node@22.8.0",
-      "maxDuration": 30,
-      "memory": 512
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node@22.8.0"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",

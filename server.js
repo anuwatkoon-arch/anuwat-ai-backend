@@ -8,19 +8,106 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 
 // 🔧 CORS Configuration - แก้ไขแล้ว
-app.use(cors({
-    origin: [
-        'http://www.anuwatkoon.com',      // ✅ เพิ่ม HTTP version
-        'https://www.anuwatkoon.com',     // ✅ เพิ่ม HTTPS version (กรณีอนาคต)
-        'http://anuwatkoon.com',          // ✅ เพิ่มแบบไม่มี www
-        'https://anuwatkoon.com',         // ✅ เพิ่ม HTTPS แบบไม่มี www
-        'http://localhost:3000',          // ✅ เก็บไว้สำหรับ development
-        'http://127.0.0.1:5500'           // ✅ เก็บไว้สำหรับ development
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
+// รันใน Console (F12) หลังจากแก้ไข syntax error และรอ 3-5 นาที
+
+console.log('🚨 Testing after Syntax Error Fix');
+console.log('⏰ Time:', new Date().toLocaleString());
+
+async function testSyntaxFix() {
+  console.log('\n🔍 Phase 1: Server Availability Test');
+  
+  try {
+    // ทดสอบว่า server start ได้หรือไม่
+    const response = await fetch('https://ai-backend-demo.vercel.app/api/health', {
+      method: 'GET',
+      mode: 'cors'
+    });
+    
+    console.log('✅ Server Response Status:', response.status);
+    
+    if (response.status === 200) {
+      console.log('🎉 SUCCESS! Server is running (syntax error fixed)');
+      
+      // ตรวจสอบ CORS headers
+      const corsOrigin = response.headers.get('Access-Control-Allow-Origin');
+      console.log('🔍 CORS Allow-Origin:', corsOrigin);
+      
+      if (corsOrigin === 'http://www.anuwatkoon.com') {
+        console.log('🎉🎉 PERFECT! CORS is working for anuwatkoon.com!');
+        
+        const data = await response.json();
+        console.log('✅ Health Data:', data);
+        
+        if (data.cors && data.cors.includes('anuwatkoon.com')) {
+          console.log('🎉🎉🎉 COMPLETE SUCCESS! Backend confirms CORS fix!');
+          return true;
+        }
+        
+      } else if (corsOrigin && corsOrigin.includes('anuwatkoon.com')) {
+        console.log('✅ Good! CORS allows anuwatkoon.com domain');
+        return true;
+        
+      } else {
+        console.log('⚠️ Server works but CORS might need more time to update');
+        console.log('Expected: anuwatkoon.com, Got:', corsOrigin);
+        return false;
+      }
+      
+    } else if (response.status >= 500) {
+      console.log('⚠️ Server error (might still be deploying)');
+      console.log('🔄 Wait 5 more minutes and try again');
+      return false;
+      
+    } else {
+      console.log('⚠️ Unexpected status:', response.status);
+      return false;
+    }
+    
+  } catch (error) {
+    console.error('❌ Test Failed:', error.message);
+    
+    if (error.message.includes('Failed to fetch') || error.message.includes('TypeError')) {
+      console.log('📝 Diagnosis:');
+      console.log('   • Server might still be redeploying (wait longer)');
+      console.log('   • Or syntax error still exists (check GitHub commits)');
+      console.log('   • Or deployment failed (check Vercel dashboard)');
+      
+    } else if (error.message.includes('CORS')) {
+      console.log('📝 CORS still not working, but server is running');
+      console.log('   • This means syntax is fixed but CORS config needs more time');
+      
+    } else {
+      console.log('📝 Unknown error:', error.message);
+    }
+    
+    return false;
+  }
+}
+
+// รันการทดสอบ
+testSyntaxFix().then(success => {
+  console.log('\n=== RESULT ===');
+  
+  if (success) {
+    console.log('🎉 SYNTAX ERROR FIXED AND CORS IS WORKING!');
+    console.log('📝 What to do next:');
+    console.log('   1. Refresh anuwatkoon.com');
+    console.log('   2. Try using the AI system');
+    console.log('   3. Status should show 🟢 connected');
+    
+  } else {
+    console.log('⚠️ Still issues detected');
+    console.log('📝 Next steps:');
+    console.log('   1. Check GitHub commits status');
+    console.log('   2. Wait 5-10 minutes for full deployment');
+    console.log('   3. Run this test again');
+    console.log('   4. If still failing, check Vercel deployment logs');
+  }
+  
+  console.log('\n💡 Quick check: Try visiting this URL directly in new tab:');
+  console.log('https://ai-backend-demo.vercel.app/api/health');
+  console.log('Should show: {"status":"OK","timestamp":"...","cors":"enabled for anuwatkoon.com"}');
+});
 
 // Serve static files (สำหรับ Frontend)
 app.use(express.static('public'));
